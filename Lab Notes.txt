@@ -1,0 +1,49 @@
+LTRXAR-2002 NOTES
+
+Update Diagram to include host facing Interfaces
+lo0 on switch 2 is incorrect
+
+Nexus config
+configs to be moved to vpc Task
+	interface nve1
+		advertise virtual-rmac
+	router bgp 200
+		address-family l2vpn evpn
+			advertise-pip
+
+Nexus Topology uses both Mlticast in the underlay and ingress-replication for BUM traffic. 
+	Should be one or other, preferrably just multicast in underlay
+	Spine configs needed for that
+		ip pim rp-address 10.2.255.11 group-list 224.0.0.0/4
+		ip pim ssm range 232.0.0.0/8
+		ip pim anycast-rp 10.2.255.11 10.2.255.11
+		
+		int eth1/1-2
+			ip pim sparse mode
+		int lo0
+			ip pim sparse-mode
+		  member vni 1200
+		int nve1
+		member vni 1200
+			mcast-group 239.0.0.1
+		member vni 1201
+			mcast-group 239.0.0.1
+
+	Leaf config to be deleted
+		Int nve1
+			no global ingress-replication protocol bgp
+
+Nexus DCI Switch
+	change loopback subnet mask to /32
+	int lo0
+	ip address 10.2.255.13/32
+
+Host005 
+	set default gateway
+	 sudo ip route replace default via 10.200.1.100
+	 
+	Consider using Loopback 1 for NVE interfaces
+
+	
+	
+			
